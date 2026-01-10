@@ -115,4 +115,14 @@ export class ParticleTextRenderer {
 
         this.geometry.attributes.position.needsUpdate = true;
     }
+
+    public resetParticles() {
+        (this.particles.material as THREE.PointsMaterial).color.setHex(0xaaaaaa);
+        for (let i = 0; i < this.particleCount; i++) {
+            // Distribute randomly across the screen space
+            this.targetPositions[i * 3] = (Math.random() - 0.5) * 30;     // x range
+            this.targetPositions[i * 3 + 1] = (Math.random() - 0.5) * 20; // y range
+            this.targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 10; // z depth
+        }
+    }
 }

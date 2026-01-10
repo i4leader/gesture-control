@@ -16,11 +16,12 @@ export class App {
   private gestureManager: GestureManager;
 
   private footer: Footer;
+  private gestureHud: HTMLElement;
 
   private currentGesture: GestureType = 'none';
 
   constructor(container: HTMLElement) {
-    this.container = container;
+    this.container.style.position = 'relative'; // Create stacking context
 
     // Scene Setup
     this.scene = new THREE.Scene();
@@ -29,7 +30,12 @@ export class App {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0x000000, 1);
+    this.renderer.setClearColor(0x000000, 0);
+
+    this.renderer.domElement.style.position = 'absolute';
+    this.renderer.domElement.style.top = '0';
+    this.renderer.domElement.style.left = '0';
+    this.renderer.domElement.style.zIndex = '2'; // Canvas on top
     this.container.appendChild(this.renderer.domElement);
 
     // Modules
@@ -39,6 +45,7 @@ export class App {
     this.particleRenderer = new ParticleTextRenderer(this.scene);
 
     this.createVideoElement();
+    this.createGestureHud();
     this.setupResize();
   }
 
@@ -50,23 +57,47 @@ export class App {
     this.videoElement.style.width = '100%';
     this.videoElement.style.height = '100%';
     this.videoElement.style.objectFit = 'cover';
-    this.videoElement.style.zIndex = '-1';
+    this.videoElement.style.zIndex = '1'; // Video behind canvas but above background
     this.videoElement.style.transform = 'scaleX(-1)'; // Mirror
-    this.videoElement.style.opacity = '0.3'; // Dim video
     this.videoElement.autoplay = true;
     this.videoElement.muted = true;
     this.videoElement.playsInline = true;
     this.container.appendChild(this.videoElement);
   }
 
+  private createGestureHud() {
+    this.gestureHud = document.createElement('div');
+    this.gestureHud.style.position = 'absolute';
+    this.gestureHud.style.top = '20px';
+    this.gestureHud.style.left = '50%';
+    this.gestureHud.style.transform = 'translateX(-50%)';
+    this.gestureHud.style.padding = '10px 20px';
+    this.gestureHud.style.borderRadius = '20px';
+    this.gestureHud.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    this.gestureHud.style.color = '#fff';
+    this.gestureHud.style.fontFamily = 'monospace';
+    this.gestureHud.style.fontSize = '16px';
+    this.gestureHud.style.backdropFilter = 'blur(5px)';
+    this.gestureHud.style.border = '1px solid rgba(255,255,255,0.2)';
+    this.gestureHud.innerText = '等待手势 (Waiting for gesture)...';
+    this.container.appendChild(this.gestureHud);
+  }
+
   async start() {
     if (!this.videoElement) return;
 
-    // Show initial text
-    this.particleRenderer.updateText("请展示手势", 0xffffff);
+    // Show initial state (random particles)
+    this.particleRenderer.resetParticles();
 
     try {
       await this.handTracker.initialize(this.videoElement);
+
+      // Remove loading screen explicitly
+      const loadingScreen = document.querySelector('.initial-loading');
+      if (loadingScreen) {
+        loadingScreen.remove();
+      }
+
       this.footer.show();
       this.animate();
       console.log("App started");
@@ -86,13 +117,31 @@ export class App {
   private animate = () => {
     requestAnimationFrame(this.animate);
 
+    // Pass timestamp to detectHands
     const result = this.handTracker.detectHands(performance.now());
+
     if (result && result.landmarks && result.landmarks.length > 0) {
       const gesture = this.gestureManager.detectGesture(result.landmarks[0]);
 
       if (gesture !== this.currentGesture) {
+        // Update last meaningful gesture before changing, IF current was meaningful
+        if (this.currentGesture !== 'none') {
+          this.lastMeaningfulGesture = this.currentGesture;
+        }
+        // For explosion: if we go Fist -> None -> Open, limit time?
+        // Ideally we reset lastMeaningfulGesture after some time? For simplicity let's keep it.
+
         this.handleGestureChange(gesture);
         this.currentGesture = gesture;
+      }
+
+    } else {
+      // No hands detected
+      if (this.currentGesture !== 'none') {
+        this.currentGesture = 'none';
+        this.gestureHud.innerText = "未检测到手势 (No hands)";
+        this.gestureHud.style.color = '#aaa';
+        this.particleRenderer.resetParticles();
       }
     }
 
@@ -100,35 +149,57 @@ export class App {
     this.renderer.render(this.scene, this.camera);
   }
 
+  private lastMeaningfulGesture: GestureType = 'none';
+
   private handleGestureChange(gesture: GestureType) {
     console.log('Gesture:', gesture);
-
-    // If we are currently EXPLODING, maybe don't interrupt immediately?
-    // Logic as per requirement:
-    // Open Palm -> "你好阿里云"
-    // OK -> "OK"
-    // Bye -> "ByeBye"
-    // Sudden Open (Explosion) -> Explode
+    this.gestureHud.innerText = `当前手势: ${this.getGestureName(gesture)}`;
+    this.gestureHud.style.color = '#fff';
 
     switch (gesture) {
       case 'open_palm':
-        // Check if previous was fist to trigger explosion
-        if (this.currentGesture === 'fist') {
+        // Check if we recently had a fist (even if there was a brief 'none' or intermediate state)
+        if (this.lastMeaningfulGesture === 'fist') {
           this.particleRenderer.explode();
+          this.gestureHud.innerText += " (爆炸!)";
+          this.gestureHud.style.color = '#ffaa00';
         } else {
-          this.particleRenderer.updateText("你好阿里云", 0x00aaff);
+          this.particleRenderer.updateText("你好", 0x00ff00);
         }
         break;
       case 'ok_sign':
         this.particleRenderer.updateText("OK", 0xffff00);
+        const yellow = 0xffff00;
+        (this.particleRenderer as any).updateText("OK", yellow); // Verify typing if needed
         break;
       case 'wave':
         this.particleRenderer.updateText("ByeBye", 0xff00ff);
         break;
-      case 'fist':
-        // Just a state to allow transition to explosion
-        // Optionally show something to indicate "charging" or just keep previous
+      case 'victory':
+        this.particleRenderer.updateText("Yeah!! ✌️", 0x00ffff);
         break;
+      case 'finger_heart':
+        this.particleRenderer.updateText("比心 ❤️", 0xff69b4); // HotPink
+        break;
+      case 'thumbs_up':
+        this.particleRenderer.updateText("点赞 👍", 0x4488ff);
+        break;
+      case 'fist':
+        // No text change, just state
+        break;
+    }
+  }
+
+  private getGestureName(gesture: GestureType): string {
+    switch (gesture) {
+      case 'open_palm': return '手掌 (Open Palm)';
+      case 'ok_sign': return 'OK 手势';
+      case 'wave': return '挥手 (Wave)';
+      case 'fist': return '握拳 (Fist)';
+      case 'victory': return '剪刀手 (Victory)';
+      case 'finger_heart': return '比心 (Heart)';
+      case 'thumbs_up': return '点赞 (Thumbs Up)';
+      default: return '未知 (Unknown)';
     }
   }
 }
