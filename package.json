@@ -1,0 +1,53 @@
+{
+  "name": "gesture-control",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Gesture Control - Fun experiments with movement tracking",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "validate-build": "npm run typecheck && npm run lint && npm run build"
+  },
+  "keywords": [
+    "mediapipe",
+    "three.js",
+    "hand-tracking",
+    "webgl",
+    "interactive",
+    "particle-system",
+    "galaxy",
+    "typescript"
+  ],
+  "author": "Jack Tu <https://github.com/i4leader>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quiet-node/mediapipe-for-fun.git"
+  },
+  "homepage": "https://github.com/quiet-node/mediapipe-for-fun#readme",
+  "bugs": {
+    "url": "https://github.com/quiet-node/mediapipe-for-fun/issues"
+  },
+  "dependencies": {
+    "@fontsource/nunito": "^5.2.7",
+    "@fontsource/playfair-display": "^5.2.8",
+    "@lume/three-meshline": "^4.0.5",
+    "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
+    "@vercel/analytics": "^1.6.1",
+    "postprocessing": "^6.38.0",
+    "three": "^0.181.2",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.1",
+    "@types/three": "^0.181.0",
+    "eslint": "^9.39.2",
+    "typescript-eslint": "^8.49.0"
+  }
+}

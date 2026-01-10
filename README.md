@@ -1,2 +1,30 @@
-# gesture-control
+# 手势控制器 (Gesture Controller)
 
+一个基于 MediaPipe 和 Three.js 的手势交互网页应用。通过手势控制粒子特效与文字展示。
+
+开发者: [Jack Tu](https://github.com/i4leader)
+
+## 功能介绍
+
+该应用通过摄像头捕捉手势，并根据手势在屏幕上呈现不同的粒子特效：
+
+1.  **展示手掌 (Open Palm)**: 粒子汇聚显示 **"你好阿里云"**。
+2.  **OK 手势**: 粒子变换显示 **"OK"**。
+3.  **挥手 (Wave)**: 粒子变换显示 **"ByeBye"**。
+4.  **粒子爆炸**: 先握拳 (Fist)，然后突然张开手掌，触发粒子爆炸效果。
+
+## 技术栈
+
+- **Three.js**: 3D 渲染与粒子系统
+- **MediaPipe**: 手势识别
+- **TypeScript**: 逻辑开发
+- **Vite**: 构建工具
+
+## 快速开始
+
+```bash
+npm install
+npm run dev
+```
+
+打开浏览器访问显示的本地地址 (如 http://localhost:2501)，并允许摄像头权限。
