@@ -33,6 +33,19 @@ export class GestureManager {
         return currentGesture;
     }
 
+    // Get palm center position (average of key landmarks)
+    getPalmPosition(landmarks: NormalizedLandmark[]): { x: number, y: number, z: number } {
+        // Use wrist (0) and middle finger MCP (9) to calculate palm center
+        const wrist = landmarks[0];
+        const middleMCP = landmarks[9];
+        
+        return {
+            x: (wrist.x + middleMCP.x) / 2,
+            y: (wrist.y + middleMCP.y) / 2,
+            z: (wrist.z + middleMCP.z) / 2
+        };
+    }
+
     // Thumbs Up: Thumb extended, others curled
     private isThumbsUp(landmarks: NormalizedLandmark[]): boolean {
         const tips = [8, 12, 16, 20];

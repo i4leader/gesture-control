@@ -27,8 +27,6 @@ import {
   KernelSize,
   Effect,
 } from 'postprocessing';
-// Note: GravitationalLensingEffect is disabled for performance
-// import { GravitationalLensingEffect } from '../interactive-galaxy/GravitationalLensingEffect';
 
 /**
  * Post-processing configuration
@@ -52,9 +50,6 @@ export interface PostProcessingConfig {
   enableColorGrading: boolean;
   /** Color grading intensity (0-1, default 0.8) */
   colorGradingIntensity: number;
-
-  /** Enable gravitational lensing effect */
-  enableGravitationalLensing: boolean;
 }
 
 /**
@@ -71,8 +66,6 @@ export const DEFAULT_POSTPROCESSING_CONFIG: PostProcessingConfig = {
 
   enableColorGrading: true,
   colorGradingIntensity: 0.6, // Reduced from 0.8 for performance
-
-  enableGravitationalLensing: false, // Disabled by default for performance
 };
 
 /**
@@ -87,8 +80,6 @@ export class PostProcessingManager {
   private bloomEffect: BloomEffect | null = null;
   private chromaticAberrationEffect: ChromaticAberrationEffect | null = null;
   private colorGradingEffect: LUT3DEffect | null = null;
-  // Note: GravitationalLensingEffect disabled for performance
-  // private gravitationalLensingEffect: GravitationalLensingEffect | null = null;
 
   // Three.js references (not owned by this manager)
   private scene: THREE.Scene;
@@ -387,14 +378,6 @@ export class PostProcessingManager {
   }
 
   /**
-   * Get gravitational lensing effect for external control
-   * Note: Disabled for performance optimization
-   */
-  getGravitationalLensingEffect(): null {
-    return null;
-  }
-
-  /**
    * Clean up resources
    */
   dispose(): void {
@@ -404,7 +387,6 @@ export class PostProcessingManager {
     this.bloomEffect?.dispose();
     this.chromaticAberrationEffect?.dispose();
     this.colorGradingEffect?.dispose();
-    // Note: gravitationalLensingEffect disabled for performance
 
     console.log('[PostProcessingManager] Disposed');
   }

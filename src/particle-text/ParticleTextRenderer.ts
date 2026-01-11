@@ -17,12 +17,19 @@ export class ParticleTextRenderer {
     
     // Canvas caching for text rendering optimization
     private textCache: Map<string, { points: { x: number, y: number }[], color: number }> = new Map();
+    
+    // Fist ball effect state
+    private isFistBallActive: boolean = false;
+    private fistBallRadius: number = 3.0; // Radius of the fist ball
+    private fistBallCenter: { x: number, y: number, z: number } = { x: 0, y: 0, z: 0 }; // Ball center position
+    private fistBallOffsets: Float32Array; // Store relative positions from center
 
     constructor(scene: THREE.Scene, particleCount: number = 10000) {
         this.scene = scene;
         this.particleCount = particleCount;
         this.currentPositions = new Float32Array(this.particleCount * 3);
         this.targetPositions = new Float32Array(this.particleCount * 3);
+        this.fistBallOffsets = new Float32Array(this.particleCount * 3); // Initialize offsets array
 
         // Initialize randomly
         for (let i = 0; i < this.particleCount * 3; i++) {
@@ -125,15 +132,86 @@ export class ParticleTextRenderer {
     public explode() {
         (this.particles.material as THREE.PointsMaterial).color.setHex(0xff0000);
         for (let i = 0; i < this.particleCount; i++) {
-            // Explode outwards
+            // Explode outwards from fist ball or current positions
             const x = this.currentPositions[i * 3];
             const y = this.currentPositions[i * 3 + 1];
             const z = this.currentPositions[i * 3 + 2];
 
-            // Add random vector away from center
-            this.targetPositions[i * 3] = x * 5 + (Math.random() - 0.5) * 10;
-            this.targetPositions[i * 3 + 1] = y * 5 + (Math.random() - 0.5) * 10;
-            this.targetPositions[i * 3 + 2] = z * 5 + (Math.random() - 0.5) * 10;
+            // Add random vector away from center with more dramatic effect
+            this.targetPositions[i * 3] = x * 8 + (Math.random() - 0.5) * 15;
+            this.targetPositions[i * 3 + 1] = y * 8 + (Math.random() - 0.5) * 15;
+            this.targetPositions[i * 3 + 2] = z * 8 + (Math.random() - 0.5) * 15;
+        }
+        
+        this.isFistBallActive = false;
+        this.needsUpdate = true;
+    }
+
+    // New method: Create fist ball effect at specific position
+    public createFistBall(palmPosition?: { x: number, y: number, z: number }) {
+        (this.particles.material as THREE.PointsMaterial).color.setHex(0xffaa00); // Orange color
+        
+        // Set ball center position (default to origin if no palm position provided)
+        if (palmPosition) {
+            // Convert normalized coordinates to world coordinates
+            this.fistBallCenter.x = (palmPosition.x - 0.5) * 20; // Scale to world space
+            this.fistBallCenter.y = -(palmPosition.y - 0.5) * 15; // Flip Y and scale
+            this.fistBallCenter.z = palmPosition.z * 10; // Scale Z
+        } else {
+            this.fistBallCenter.x = 0;
+            this.fistBallCenter.y = 0;
+            this.fistBallCenter.z = 0;
+        }
+        
+        // Arrange particles in a sphere formation and store offsets
+        for (let i = 0; i < this.particleCount; i++) {
+            // Generate random point on sphere surface
+            const phi = Math.random() * Math.PI * 2; // Azimuth angle
+            const cosTheta = Math.random() * 2 - 1; // Cosine of polar angle
+            const sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
+            
+            // Add some randomness to radius for more organic look
+            const radius = this.fistBallRadius + (Math.random() - 0.5) * 0.5;
+            
+            // Calculate offset from center
+            const offsetX = radius * sinTheta * Math.cos(phi);
+            const offsetY = radius * sinTheta * Math.sin(phi);
+            const offsetZ = radius * cosTheta;
+            
+            // Store offsets for later use
+            this.fistBallOffsets[i * 3] = offsetX;
+            this.fistBallOffsets[i * 3 + 1] = offsetY;
+            this.fistBallOffsets[i * 3 + 2] = offsetZ;
+            
+            // Set target positions
+            this.targetPositions[i * 3] = this.fistBallCenter.x + offsetX;
+            this.targetPositions[i * 3 + 1] = this.fistBallCenter.y + offsetY;
+            this.targetPositions[i * 3 + 2] = this.fistBallCenter.z + offsetZ;
+        }
+        
+        this.isFistBallActive = true;
+        this.needsUpdate = true;
+    }
+
+    // New method: Update fist ball position to follow palm
+    public updateFistBallPosition(palmPosition: { x: number, y: number, z: number }) {
+        if (!this.isFistBallActive) return;
+        
+        // Convert normalized coordinates to world coordinates
+        const newCenterX = (palmPosition.x - 0.5) * 20;
+        const newCenterY = -(palmPosition.y - 0.5) * 15;
+        const newCenterZ = palmPosition.z * 10;
+        
+        // Update ball center
+        this.fistBallCenter.x = newCenterX;
+        this.fistBallCenter.y = newCenterY;
+        this.fistBallCenter.z = newCenterZ;
+        
+        // Update all particle target positions using stored offsets
+        for (let i = 0; i < this.particleCount; i++) {
+            this.targetPositions[i * 3] = this.fistBallCenter.x + this.fistBallOffsets[i * 3];
+            this.targetPositions[i * 3 + 1] = this.fistBallCenter.y + this.fistBallOffsets[i * 3 + 1];
+            this.targetPositions[i * 3 + 2] = this.fistBallCenter.z + this.fistBallOffsets[i * 3 + 2];
         }
         
         this.needsUpdate = true;
@@ -146,10 +224,13 @@ export class ParticleTextRenderer {
         let hasMovement = false;
         let changedParticles = 0;
 
+        // Use faster transition for fist ball effect
+        const currentTransitionSpeed = this.isFistBallActive ? 0.15 : this.transitionSpeed;
+
         for (let i = 0; i < this.particleCount * 3; i++) {
             const diff = this.targetPositions[i] - positions[i];
             if (Math.abs(diff) > this.updateThreshold) {
-                positions[i] += diff * this.transitionSpeed;
+                positions[i] += diff * currentTransitionSpeed;
                 hasMovement = true;
                 if (i % 3 === 0) changedParticles++; // Count particles, not components
             }
@@ -178,6 +259,12 @@ export class ParticleTextRenderer {
             this.targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 10; // z depth
         }
         
+        this.isFistBallActive = false;
         this.needsUpdate = true;
+    }
+
+    // Check if fist ball is currently active
+    public isFistBallEffect(): boolean {
+        return this.isFistBallActive;
     }
 }

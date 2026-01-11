@@ -167,17 +167,22 @@ export class App {
     this.performanceMonitor?.recordGestureDetection(performance.now() - gestureStart);
 
     if (result && result.landmarks && result.landmarks.length > 0) {
-      const gesture = this.gestureManager.detectGesture(result.landmarks[0]);
+      const landmarks = result.landmarks[0];
+      const gesture = this.gestureManager.detectGesture(landmarks);
+      const palmPosition = this.gestureManager.getPalmPosition(landmarks);
+
+      // Update fist ball position if active
+      if (this.currentGesture === 'fist' && this.particleRenderer.isFistBallEffect()) {
+        this.particleRenderer.updateFistBallPosition(palmPosition);
+      }
 
       if (gesture !== this.currentGesture) {
         // Update last meaningful gesture before changing, IF current was meaningful
         if (this.currentGesture !== 'none') {
           this.lastMeaningfulGesture = this.currentGesture;
         }
-        // For explosion: if we go Fist -> None -> Open, limit time?
-        // Ideally we reset lastMeaningfulGesture after some time? For simplicity let's keep it.
 
-        this.handleGestureChange(gesture);
+        this.handleGestureChange(gesture, palmPosition);
         this.currentGesture = gesture;
       }
 
@@ -208,26 +213,24 @@ export class App {
 
   private lastMeaningfulGesture: GestureType = 'none';
 
-  private handleGestureChange(gesture: GestureType) {
+  private handleGestureChange(gesture: GestureType, palmPosition?: { x: number, y: number, z: number }) {
     console.log('Gesture:', gesture);
     this.gestureHud.innerText = `当前手势: ${this.getGestureName(gesture)}`;
     this.gestureHud.style.color = '#fff';
 
     switch (gesture) {
       case 'open_palm':
-        // Check if we recently had a fist (even if there was a brief 'none' or intermediate state)
-        if (this.lastMeaningfulGesture === 'fist') {
+        // Check if we recently had a fist and there's an active fist ball
+        if (this.lastMeaningfulGesture === 'fist' && this.particleRenderer.isFistBallEffect()) {
           this.particleRenderer.explode();
           this.gestureHud.innerText += " (爆炸!)";
-          this.gestureHud.style.color = '#ffaa00';
+          this.gestureHud.style.color = '#ff0000';
         } else {
-          this.particleRenderer.updateText("你好", 0x00ff00);
+          this.particleRenderer.updateText("你好阿里云", 0x00ff00);
         }
         break;
       case 'ok_sign':
         this.particleRenderer.updateText("OK", 0xffff00);
-        const yellow = 0xffff00;
-        (this.particleRenderer as any).updateText("OK", yellow); // Verify typing if needed
         break;
       case 'wave':
         this.particleRenderer.updateText("ByeBye", 0xff00ff);
@@ -242,7 +245,10 @@ export class App {
         this.particleRenderer.updateText("点赞 👍", 0x4488ff);
         break;
       case 'fist':
-        // No text change, just state
+        // Create fist ball effect at palm position
+        this.particleRenderer.createFistBall(palmPosition);
+        this.gestureHud.innerText += " (聚集中...)";
+        this.gestureHud.style.color = '#ffaa00';
         break;
     }
   }
