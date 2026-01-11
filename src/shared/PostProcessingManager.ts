@@ -27,7 +27,8 @@ import {
   KernelSize,
   Effect,
 } from 'postprocessing';
-import { GravitationalLensingEffect } from '../interactive-galaxy/GravitationalLensingEffect';
+// Note: GravitationalLensingEffect is disabled for performance
+// import { GravitationalLensingEffect } from '../interactive-galaxy/GravitationalLensingEffect';
 
 /**
  * Post-processing configuration
@@ -57,21 +58,21 @@ export interface PostProcessingConfig {
 }
 
 /**
- * Default configuration optimized for cosmic visuals
+ * Default configuration optimized for cosmic visuals and performance
  */
 export const DEFAULT_POSTPROCESSING_CONFIG: PostProcessingConfig = {
   enableBloom: true,
-  bloomIntensity: 1.5,
-  bloomLuminanceThreshold: 0.4,
-  bloomRadius: 0.8,
+  bloomIntensity: 1.2, // Reduced from 1.5 for better performance
+  bloomLuminanceThreshold: 0.5, // Increased from 0.4 to reduce bloom area
+  bloomRadius: 0.6, // Reduced from 0.8 for better performance
 
   enableChromaticAberration: true,
-  chromaticAberrationOffset: 0.001,
+  chromaticAberrationOffset: 0.0008, // Slightly reduced for subtlety
 
   enableColorGrading: true,
-  colorGradingIntensity: 0.8,
+  colorGradingIntensity: 0.6, // Reduced from 0.8 for performance
 
-  enableGravitationalLensing: true,
+  enableGravitationalLensing: false, // Disabled by default for performance
 };
 
 /**
@@ -86,7 +87,8 @@ export class PostProcessingManager {
   private bloomEffect: BloomEffect | null = null;
   private chromaticAberrationEffect: ChromaticAberrationEffect | null = null;
   private colorGradingEffect: LUT3DEffect | null = null;
-  private gravitationalLensingEffect: GravitationalLensingEffect | null = null;
+  // Note: GravitationalLensingEffect disabled for performance
+  // private gravitationalLensingEffect: GravitationalLensingEffect | null = null;
 
   // Three.js references (not owned by this manager)
   private scene: THREE.Scene;
@@ -170,11 +172,7 @@ export class PostProcessingManager {
       effects.push(this.colorGradingEffect);
     }
 
-    // Gravitational Lensing (screen-space distortion)
-    if (this.config.enableGravitationalLensing) {
-      this.gravitationalLensingEffect = new GravitationalLensingEffect();
-      effects.push(this.gravitationalLensingEffect);
-    }
+    // Note: Gravitational Lensing disabled for performance optimization
 
     // Add all effects to a single pass (more efficient)
     if (effects.length > 0) {
@@ -390,9 +388,10 @@ export class PostProcessingManager {
 
   /**
    * Get gravitational lensing effect for external control
+   * Note: Disabled for performance optimization
    */
-  getGravitationalLensingEffect(): GravitationalLensingEffect | null {
-    return this.gravitationalLensingEffect;
+  getGravitationalLensingEffect(): null {
+    return null;
   }
 
   /**
@@ -405,7 +404,7 @@ export class PostProcessingManager {
     this.bloomEffect?.dispose();
     this.chromaticAberrationEffect?.dispose();
     this.colorGradingEffect?.dispose();
-    this.gravitationalLensingEffect?.dispose();
+    // Note: gravitationalLensingEffect disabled for performance
 
     console.log('[PostProcessingManager] Disposed');
   }

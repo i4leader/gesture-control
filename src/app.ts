@@ -3,6 +3,8 @@ import { HandTracker } from './shared/HandTracker';
 import { ParticleTextRenderer } from './particle-text/ParticleTextRenderer';
 import { GestureManager, GestureType } from './particle-text/GestureManager';
 import { Footer } from './ui/Footer';
+import { PerformanceMonitor } from './utils/PerformanceMonitor';
+import { getOptimalPerformanceConfig, applyPerformanceConfig, getCurrentPerformanceConfig } from './config/performance';
 
 export class App {
   private container: HTMLElement;
@@ -16,12 +18,18 @@ export class App {
   private gestureManager: GestureManager;
 
   private footer: Footer;
-  private gestureHud: HTMLElement;
+  private gestureHud!: HTMLElement; // Initialized in createGestureHud()
+  private performanceMonitor?: PerformanceMonitor; // Optional based on config
 
   private currentGesture: GestureType = 'none';
 
   constructor(container: HTMLElement) {
+    this.container = container;
     this.container.style.position = 'relative'; // Create stacking context
+
+    // Apply performance optimizations based on device capability
+    const perfConfig = getOptimalPerformanceConfig();
+    applyPerformanceConfig(perfConfig);
 
     // Scene Setup
     this.scene = new THREE.Scene();
@@ -42,7 +50,12 @@ export class App {
     this.gestureManager = new GestureManager();
     this.handTracker = new HandTracker();
     this.footer = new Footer(this.container);
-    this.particleRenderer = new ParticleTextRenderer(this.scene);
+    this.particleRenderer = new ParticleTextRenderer(this.scene, perfConfig.particleCount);
+    
+    // Only create performance monitor if enabled
+    if (perfConfig.enablePerformanceMonitor) {
+      this.performanceMonitor = new PerformanceMonitor();
+    }
 
     this.createVideoElement();
     this.createGestureHud();
@@ -90,6 +103,11 @@ export class App {
     this.particleRenderer.resetParticles();
 
     try {
+      // Apply performance-based detection frequency
+      const perfConfig = getCurrentPerformanceConfig();
+      const detectionInterval = 1000 / perfConfig.gestureDetectionFps;
+      this.handTracker.setDetectionIntervalMs(detectionInterval);
+      
       await this.handTracker.initialize(this.videoElement);
 
       // Remove loading screen explicitly
@@ -100,9 +118,34 @@ export class App {
 
       this.footer.show();
       this.animate();
-      console.log("App started");
-    } catch (e) {
+      console.log(`App started with ${perfConfig.gestureDetectionFps}fps gesture detection`);
+    } catch (e: any) {
       console.error("Failed to start hand tracker", e);
+      const loadingScreen = document.querySelector('.initial-loading');
+      if (loadingScreen) {
+        // Stop spinner
+        const spinner = loadingScreen.querySelector('.spinner') as HTMLElement;
+        if (spinner) spinner.style.display = 'none';
+
+        // Show error message
+        const p = loadingScreen.querySelector('p');
+        if (p) {
+          p.innerText = `启动失败 (Start failed): ${e.message || e}`;
+          p.style.color = '#ff4444';
+        }
+
+        // Add retry button or helpful hint
+        const hint = document.createElement('div');
+        hint.style.marginTop = '15px';
+        hint.style.fontSize = '12px';
+        hint.style.opacity = '0.8';
+        hint.innerHTML = `
+          如果是网络原因(如无法加载模型)，请检查网络连接。<br>
+          如果是摄像头权限，请允许访问。<br>
+          <button onclick="window.location.reload()" style="margin-top:10px;padding:5px 10px;background:#333;color:#fff;border:none;border-radius:4px;cursor:pointer">重试 (Retry)</button>
+        `;
+        loadingScreen.appendChild(hint);
+      }
     }
   }
 
@@ -115,10 +158,13 @@ export class App {
   }
 
   private animate = () => {
+    const frameStart = this.performanceMonitor?.startFrame();
     requestAnimationFrame(this.animate);
 
-    // Pass timestamp to detectHands
+    // Gesture Detection with timing
+    const gestureStart = performance.now();
     const result = this.handTracker.detectHands(performance.now());
+    this.performanceMonitor?.recordGestureDetection(performance.now() - gestureStart);
 
     if (result && result.landmarks && result.landmarks.length > 0) {
       const gesture = this.gestureManager.detectGesture(result.landmarks[0]);
@@ -145,8 +191,19 @@ export class App {
       }
     }
 
+    // Particle Update with timing
+    const particleStart = performance.now();
     this.particleRenderer.update();
+    this.performanceMonitor?.recordParticleUpdate(performance.now() - particleStart);
+
+    // Render with timing
+    const renderStart = performance.now();
     this.renderer.render(this.scene, this.camera);
+    this.performanceMonitor?.recordRender(performance.now() - renderStart);
+
+    if (frameStart !== undefined) {
+      this.performanceMonitor?.endFrame(frameStart);
+    }
   }
 
   private lastMeaningfulGesture: GestureType = 'none';

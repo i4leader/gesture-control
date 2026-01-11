@@ -9,8 +9,9 @@ import {
   DEFAULT_HAND_TRAIL_CONFIG,
   Point2D,
   TrailPoint,
+  TrailPointWithRadius,
   TrackedHand,
-} from '../foggy-mirror/types';
+} from './HandTypes';
 
 /**
  * HandTrailTracker manages hand position tracking and trail interpolation
@@ -114,6 +115,9 @@ export class HandTrailTracker {
       this.newTrailPoints.push(...trail);
 
       const trackedHand: TrackedHand = {
+        id: handId,
+        landmarks,
+        lastSeen: performance.now(),
         palmPosition,
         previousPosition,
         trail,
@@ -147,8 +151,8 @@ export class HandTrailTracker {
     current: Point2D,
     previous: Point2D | null,
     radius: number
-  ): TrailPoint[] {
-    const trail: TrailPoint[] = [];
+  ): TrailPointWithRadius[] {
+    const trail: TrailPointWithRadius[] = [];
     const timestamp = performance.now();
 
     // If no previous position, just return current point
@@ -179,7 +183,7 @@ export class HandTrailTracker {
     const points = this.config.interpolationPoints;
     for (let i = 0; i <= points; i++) {
       const t = i / points;
-      const interpolated: TrailPoint = {
+      const interpolated: TrailPointWithRadius = {
         x: previous.x + (current.x - previous.x) * t,
         y: previous.y + (current.y - previous.y) * t,
         radius,

@@ -116,3 +116,66 @@ export interface ProcessedHand {
   /** Hand classification (Left/Right) */
   handedness: HandCategory;
 }
+
+/**
+ * 2D Point interface for trail tracking
+ */
+export interface Point2D {
+  x: number;
+  y: number;
+}
+
+/**
+ * Trail point with timestamp for smooth interpolation
+ */
+export interface TrailPoint extends Point2D {
+  timestamp: number;
+}
+
+/**
+ * Tracked hand with trail history
+ */
+export interface TrackedHand {
+  id: string;
+  landmarks: NormalizedLandmark[];
+  trail: TrailPoint[];
+  lastSeen: number;
+  palmPosition: Point2D;
+  previousPosition?: Point2D | null;
+  handSize?: number;
+  handedness?: string;
+  velocity?: number;
+}
+
+/**
+ * Trail point with radius for smooth interpolation
+ */
+export interface TrailPointWithRadius extends TrailPoint {
+  radius: number;
+}
+
+/**
+ * Configuration for hand trail tracking
+ */
+export interface HandTrailConfig {
+  maxTrailLength: number;
+  trailDecayTime: number;
+  smoothingFactor: number;
+  minMovementThreshold: number;
+  interpolationPoints: number;
+  dynamicRadius: boolean;
+  baseClearRadius: number;
+}
+
+/**
+ * Default hand trail configuration
+ */
+export const DEFAULT_HAND_TRAIL_CONFIG: HandTrailConfig = {
+  maxTrailLength: 50,
+  trailDecayTime: 2000, // 2 seconds
+  smoothingFactor: 0.8,
+  minMovementThreshold: 0.01,
+  interpolationPoints: 5,
+  dynamicRadius: true,
+  baseClearRadius: 50,
+};

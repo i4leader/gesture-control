@@ -3,14 +3,11 @@ import { NormalizedLandmark } from '@mediapipe/tasks-vision';
 export type GestureType = 'none' | 'open_palm' | 'ok_sign' | 'fist' | 'wave' | 'victory' | 'finger_heart' | 'thumbs_up';
 
 export class GestureManager {
-    private previousGesture: GestureType = 'none';
     private waveHistory: number[] = []; // Store x-positions of wrist
-    private lastLandmarks: NormalizedLandmark[] | null = null;
 
     constructor() { }
 
     detectGesture(landmarks: NormalizedLandmark[]): GestureType {
-        this.lastLandmarks = landmarks;
         let currentGesture: GestureType = 'none';
 
         // 1. Check Wave first (dynamic gesture)
