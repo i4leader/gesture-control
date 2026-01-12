@@ -69,7 +69,7 @@
 ### 安装运行
 ```bash
 # 克隆项目
-git clone https://github.com/quiet-node/mediapipe-for-fun.git
+git clone https://github.com/i4leader/gesture-control.git
 cd gesture-control
 
 # 安装依赖
@@ -241,7 +241,7 @@ npm run validate-build
 
 ### 本地开发
 ```bash
-git clone https://github.com/quiet-node/mediapipe-for-fun.git
+git clone https://github.com/i4leader/gesture-control.git
 cd gesture-control
 npm install
 npm run dev
@@ -323,7 +323,6 @@ A: 当前支持7种预设手势，自定义手势需要：
 
 - [MediaPipe 官方文档](https://ai.google.dev/edge/mediapipe)
 - [Three.js 官方文档](https://threejs.org/docs/)
-- [项目演示地址](https://github.com/quiet-node/mediapipe-for-fun)
 
 ---
 
