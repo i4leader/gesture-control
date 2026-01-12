@@ -10,7 +10,8 @@
 开发者: [Jack Tu](https://github.com/i4leader) + Kiro
 
 ## 演示
-<video src="/public/demo/demo1.mp4">
+<video src="/public/demo/demo1.mp4" controls width="1280" height="720">
+  您的浏览器不支持视频播放。
 </video>
 
 ## ✨ 功能特色
