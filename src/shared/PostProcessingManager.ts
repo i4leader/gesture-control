@@ -53,19 +53,19 @@ export interface PostProcessingConfig {
 }
 
 /**
- * Default configuration optimized for cosmic visuals and performance
+ * Default configuration optimized for fluorescent particle effects
  */
 export const DEFAULT_POSTPROCESSING_CONFIG: PostProcessingConfig = {
   enableBloom: true,
-  bloomIntensity: 1.2, // Reduced from 1.5 for better performance
-  bloomLuminanceThreshold: 0.5, // Increased from 0.4 to reduce bloom area
-  bloomRadius: 0.6, // Reduced from 0.8 for better performance
+  bloomIntensity: 1.8, // Increased for better glow effect
+  bloomLuminanceThreshold: 0.3, // Lowered to capture more fluorescent colors
+  bloomRadius: 0.8, // Increased for wider glow
 
   enableChromaticAberration: true,
-  chromaticAberrationOffset: 0.0008, // Slightly reduced for subtlety
+  chromaticAberrationOffset: 0.001, // Slightly increased for more dramatic effect
 
   enableColorGrading: true,
-  colorGradingIntensity: 0.6, // Reduced from 0.8 for performance
+  colorGradingIntensity: 0.7, // Increased for more vibrant colors
 };
 
 /**

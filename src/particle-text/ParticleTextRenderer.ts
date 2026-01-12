@@ -8,9 +8,6 @@ export class ParticleTextRenderer {
     private currentPositions: Float32Array;
     private targetPositions: Float32Array;
 
-    // To handle smooth transitions
-    private transitionSpeed: number = 0.05;
-    
     // Performance optimization: track which particles need updates
     private needsUpdate: boolean = true;
     private updateThreshold: number = 0.001; // Minimum movement to trigger update
@@ -23,6 +20,14 @@ export class ParticleTextRenderer {
     private fistBallRadius: number = 3.0; // Radius of the fist ball
     private fistBallCenter: { x: number, y: number, z: number } = { x: 0, y: 0, z: 0 }; // Ball center position
     private fistBallOffsets: Float32Array; // Store relative positions from center
+    
+    // Different transition speeds for different effects
+    private textTransitionSpeed: number = 0.08; // Increased from 0.04 for faster text formation
+    private fistBallTransitionSpeed: number = 0.15; // Slightly increased for even faster response
+    private explosionTransitionSpeed: number = 0.12; // Increased for more dramatic explosion
+    
+    // Track which particles are active for text display
+    private activeParticleCount: number = 0;
 
     constructor(scene: THREE.Scene, particleCount: number = 10000) {
         this.scene = scene;
@@ -40,12 +45,15 @@ export class ParticleTextRenderer {
         this.geometry = new THREE.BufferGeometry();
         this.geometry.setAttribute('position', new THREE.BufferAttribute(this.currentPositions, 3));
 
+        // Enhanced material with glow effect
         const material = new THREE.PointsMaterial({
             color: 0x00ffff,
-            size: 0.1,
+            size: 0.15, // Increased from 0.1 for better visibility
             transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
+            opacity: 0.9, // Slightly increased opacity
+            blending: THREE.AdditiveBlending, // This creates the glow effect
+            depthWrite: false, // Prevents depth issues with glowing particles
+            vertexColors: false,
         });
 
         this.particles = new THREE.Points(this.geometry, material);
@@ -54,10 +62,12 @@ export class ParticleTextRenderer {
 
     // Generate target positions from text
     public updateText(text: string, color: number = 0x00ffff) {
-        (this.particles.material as THREE.PointsMaterial).color.setHex(color);
+        // Convert color to fluorescent version
+        const fluorescentColor = this.makeFluorescent(color);
+        (this.particles.material as THREE.PointsMaterial).color.setHex(fluorescentColor);
 
         // Check cache first for performance
-        const cacheKey = `${text}_${color}`;
+        const cacheKey = `${text}_${fluorescentColor}`;
         let validPoints: { x: number, y: number }[];
         
         if (this.textCache.has(cacheKey)) {
@@ -70,24 +80,45 @@ export class ParticleTextRenderer {
                 const firstKey = this.textCache.keys().next().value as string;
                 this.textCache.delete(firstKey);
             }
-            this.textCache.set(cacheKey, { points: validPoints, color });
+            this.textCache.set(cacheKey, { points: validPoints, color: fluorescentColor });
         }
 
-        // Assign targets
+        // Assign targets with 1.5x scale
+        const scale = 1.5; // Enlarge by 1.5x
+        this.activeParticleCount = validPoints.length; // Track active particles
+        
         for (let i = 0; i < this.particleCount; i++) {
             if (i < validPoints.length) {
-                this.targetPositions[i * 3] = validPoints[i].x;
-                this.targetPositions[i * 3 + 1] = validPoints[i].y;
+                // Active particles form the text
+                this.targetPositions[i * 3] = validPoints[i].x * scale;
+                this.targetPositions[i * 3 + 1] = validPoints[i].y * scale;
                 this.targetPositions[i * 3 + 2] = 0;
             } else {
-                // Excess particles fly away / hide?
-                this.targetPositions[i * 3] = (Math.random() - 0.5) * 50;
-                this.targetPositions[i * 3 + 1] = (Math.random() - 0.5) * 50;
-                this.targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+                // Hide excess particles by moving them far behind the camera
+                this.targetPositions[i * 3] = 0;
+                this.targetPositions[i * 3 + 1] = 0;
+                this.targetPositions[i * 3 + 2] = -1000; // Far behind camera
             }
         }
         
         this.needsUpdate = true;
+    }
+
+    // Convert regular colors to fluorescent versions
+    private makeFluorescent(color: number): number {
+        const fluorescentColors: { [key: number]: number } = {
+            0x00ff00: 0x00FF00, // Green -> Neon Green
+            0xffff00: 0xCCFF00, // Yellow -> Fluorescent Yellow/Electric Lime
+            0xff00ff: 0xFF1493, // Magenta -> Hot Pink/Neon Pink
+            0x00ffff: 0x00FFFF, // Cyan -> Neon Blue
+            0xff69b4: 0xFF1493, // HotPink -> Hot Pink/Neon Pink
+            0x4488ff: 0x00FFFF, // Blue -> Neon Blue
+            0xff0000: 0xFF1493, // Red -> Hot Pink (more vibrant than red)
+            0xffaa00: 0xFFA500, // Orange -> Neon Orange
+            0xaaaaaa: 0x00FF00, // Gray -> Neon Green for default
+        };
+        
+        return fluorescentColors[color] || color;
     }
 
     private generateTextPoints(text: string): { x: number, y: number }[] {
@@ -103,7 +134,7 @@ export class ParticleTextRenderer {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 100px "Microsoft YaHei", sans-serif'; // Support Chinese
+        ctx.font = 'bold 120px "Arial", "Microsoft YaHei", sans-serif'; // Increased font size from 100px to 120px
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -130,8 +161,13 @@ export class ParticleTextRenderer {
     }
 
     public explode() {
-        (this.particles.material as THREE.PointsMaterial).color.setHex(0xff0000);
-        for (let i = 0; i < this.particleCount; i++) {
+        const fluorescentRed = 0xFF1493; // Hot Pink/Neon Pink for explosion
+        (this.particles.material as THREE.PointsMaterial).color.setHex(fluorescentRed);
+        
+        // Only explode the particles that were active (forming the fist ball)
+        const particlesToExplode = this.isFistBallActive ? this.particleCount : this.activeParticleCount;
+        
+        for (let i = 0; i < particlesToExplode; i++) {
             // Explode outwards from fist ball or current positions
             const x = this.currentPositions[i * 3];
             const y = this.currentPositions[i * 3 + 1];
@@ -143,13 +179,22 @@ export class ParticleTextRenderer {
             this.targetPositions[i * 3 + 2] = z * 8 + (Math.random() - 0.5) * 15;
         }
         
+        // Hide remaining particles
+        for (let i = particlesToExplode; i < this.particleCount; i++) {
+            this.targetPositions[i * 3] = 0;
+            this.targetPositions[i * 3 + 1] = 0;
+            this.targetPositions[i * 3 + 2] = -1000;
+        }
+        
         this.isFistBallActive = false;
+        this.activeParticleCount = particlesToExplode;
         this.needsUpdate = true;
     }
 
     // New method: Create fist ball effect at specific position
     public createFistBall(palmPosition?: { x: number, y: number, z: number }) {
-        (this.particles.material as THREE.PointsMaterial).color.setHex(0xffaa00); // Orange color
+        const fluorescentOrange = 0xFFA500; // Neon Orange
+        (this.particles.material as THREE.PointsMaterial).color.setHex(fluorescentOrange);
         
         // Set ball center position (default to origin if no palm position provided)
         if (palmPosition) {
@@ -163,8 +208,12 @@ export class ParticleTextRenderer {
             this.fistBallCenter.z = 0;
         }
         
+        // Use a reasonable number of particles for the ball (not all 10k)
+        const ballParticleCount = Math.min(3000, this.particleCount);
+        this.activeParticleCount = ballParticleCount;
+        
         // Arrange particles in a sphere formation and store offsets
-        for (let i = 0; i < this.particleCount; i++) {
+        for (let i = 0; i < ballParticleCount; i++) {
             // Generate random point on sphere surface
             const phi = Math.random() * Math.PI * 2; // Azimuth angle
             const cosTheta = Math.random() * 2 - 1; // Cosine of polar angle
@@ -189,6 +238,13 @@ export class ParticleTextRenderer {
             this.targetPositions[i * 3 + 2] = this.fistBallCenter.z + offsetZ;
         }
         
+        // Hide remaining particles
+        for (let i = ballParticleCount; i < this.particleCount; i++) {
+            this.targetPositions[i * 3] = 0;
+            this.targetPositions[i * 3 + 1] = 0;
+            this.targetPositions[i * 3 + 2] = -1000;
+        }
+        
         this.isFistBallActive = true;
         this.needsUpdate = true;
     }
@@ -207,8 +263,8 @@ export class ParticleTextRenderer {
         this.fistBallCenter.y = newCenterY;
         this.fistBallCenter.z = newCenterZ;
         
-        // Update all particle target positions using stored offsets
-        for (let i = 0; i < this.particleCount; i++) {
+        // Update only the active particles using stored offsets
+        for (let i = 0; i < this.activeParticleCount; i++) {
             this.targetPositions[i * 3] = this.fistBallCenter.x + this.fistBallOffsets[i * 3];
             this.targetPositions[i * 3 + 1] = this.fistBallCenter.y + this.fistBallOffsets[i * 3 + 1];
             this.targetPositions[i * 3 + 2] = this.fistBallCenter.z + this.fistBallOffsets[i * 3 + 2];
@@ -224,8 +280,15 @@ export class ParticleTextRenderer {
         let hasMovement = false;
         let changedParticles = 0;
 
-        // Use faster transition for fist ball effect
-        const currentTransitionSpeed = this.isFistBallActive ? 0.15 : this.transitionSpeed;
+        // Choose appropriate transition speed based on current state
+        let currentTransitionSpeed: number;
+        if (this.isFistBallActive) {
+            currentTransitionSpeed = this.fistBallTransitionSpeed; // Fast for fist ball tracking
+        } else {
+            // Check if we're in explosion mode (particles moving away from center)
+            const isExplosion = this.isExplosionState();
+            currentTransitionSpeed = isExplosion ? this.explosionTransitionSpeed : this.textTransitionSpeed;
+        }
 
         for (let i = 0; i < this.particleCount * 3; i++) {
             const diff = this.targetPositions[i] - positions[i];
@@ -250,13 +313,50 @@ export class ParticleTextRenderer {
         }
     }
 
+    // Helper method to detect if particles are in explosion state
+    private isExplosionState(): boolean {
+        // Check if particles are generally moving away from center (explosion pattern)
+        // Sample a few particles to determine the state
+        const sampleSize = Math.min(100, this.particleCount);
+        let outwardMovingCount = 0;
+        
+        for (let i = 0; i < sampleSize; i++) {
+            const idx = i * 3;
+            const x = this.targetPositions[idx];
+            const y = this.targetPositions[idx + 1];
+            const z = this.targetPositions[idx + 2];
+            
+            // Check if particle is far from center (likely explosion)
+            const distanceFromCenter = Math.sqrt(x * x + y * y + z * z);
+            if (distanceFromCenter > 10) { // Threshold for explosion detection
+                outwardMovingCount++;
+            }
+        }
+        
+        // If more than 50% of sampled particles are far from center, it's likely an explosion
+        return (outwardMovingCount / sampleSize) > 0.5;
+    }
+
     public resetParticles() {
-        (this.particles.material as THREE.PointsMaterial).color.setHex(0xaaaaaa);
-        for (let i = 0; i < this.particleCount; i++) {
+        const fluorescentGreen = 0x00FF00; // Neon Green for default
+        (this.particles.material as THREE.PointsMaterial).color.setHex(fluorescentGreen);
+        
+        // Use a smaller number of particles for random distribution
+        const randomParticleCount = Math.min(2000, this.particleCount);
+        this.activeParticleCount = randomParticleCount;
+        
+        for (let i = 0; i < randomParticleCount; i++) {
             // Distribute randomly across the screen space
             this.targetPositions[i * 3] = (Math.random() - 0.5) * 30;     // x range
             this.targetPositions[i * 3 + 1] = (Math.random() - 0.5) * 20; // y range
             this.targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 10; // z depth
+        }
+        
+        // Hide remaining particles
+        for (let i = randomParticleCount; i < this.particleCount; i++) {
+            this.targetPositions[i * 3] = 0;
+            this.targetPositions[i * 3 + 1] = 0;
+            this.targetPositions[i * 3 + 2] = -1000;
         }
         
         this.isFistBallActive = false;

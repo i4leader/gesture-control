@@ -3,6 +3,8 @@ import { HandTracker } from './shared/HandTracker';
 import { ParticleTextRenderer } from './particle-text/ParticleTextRenderer';
 import { GestureManager, GestureType } from './particle-text/GestureManager';
 import { Footer } from './ui/Footer';
+import { SystemInfo } from './ui/SystemInfo';
+import { GestureInfo } from './ui/GestureInfo';
 import { PerformanceMonitor } from './utils/PerformanceMonitor';
 import { getOptimalPerformanceConfig, applyPerformanceConfig, getCurrentPerformanceConfig } from './config/performance';
 
@@ -20,6 +22,8 @@ export class App {
   private footer: Footer;
   private gestureHud!: HTMLElement; // Initialized in createGestureHud()
   private performanceMonitor?: PerformanceMonitor; // Optional based on config
+  private systemInfo: SystemInfo;
+  private gestureInfo: GestureInfo;
 
   private currentGesture: GestureType = 'none';
 
@@ -51,6 +55,8 @@ export class App {
     this.handTracker = new HandTracker();
     this.footer = new Footer(this.container);
     this.particleRenderer = new ParticleTextRenderer(this.scene, perfConfig.particleCount);
+    this.systemInfo = new SystemInfo(this.container);
+    this.gestureInfo = new GestureInfo(this.container);
     
     // Only create performance monitor if enabled
     if (perfConfig.enablePerformanceMonitor) {
@@ -72,6 +78,11 @@ export class App {
     this.videoElement.style.objectFit = 'cover';
     this.videoElement.style.zIndex = '1'; // Video behind canvas but above background
     this.videoElement.style.transform = 'scaleX(-1)'; // Mirror
+    
+    // Add dreamy/blurry filter effect
+    this.videoElement.style.filter = 'blur(2px) opacity(0.6) contrast(0.8) brightness(0.9)';
+    this.videoElement.style.backdropFilter = 'blur(1px)';
+    
     this.videoElement.autoplay = true;
     this.videoElement.muted = true;
     this.videoElement.playsInline = true;
@@ -161,6 +172,9 @@ export class App {
     const frameStart = this.performanceMonitor?.startFrame();
     requestAnimationFrame(this.animate);
 
+    // Update system info FPS
+    this.systemInfo.updateFPS();
+
     // Gesture Detection with timing
     const gestureStart = performance.now();
     const result = this.handTracker.detectHands(performance.now());
@@ -170,6 +184,17 @@ export class App {
       const landmarks = result.landmarks[0];
       const gesture = this.gestureManager.detectGesture(landmarks);
       const palmPosition = this.gestureManager.getPalmPosition(landmarks);
+
+      // Get handedness information
+      const handedness = result.handednesses && result.handednesses[0] && result.handednesses[0][0] 
+        ? result.handednesses[0][0].categoryName.toLowerCase() 
+        : 'unknown';
+      const confidence = result.handednesses && result.handednesses[0] && result.handednesses[0][0]
+        ? result.handednesses[0][0].score
+        : 0;
+
+      // Update gesture info display
+      this.gestureInfo.updateGestureInfo(gesture, handedness, confidence);
 
       // Update fist ball position if active
       if (this.currentGesture === 'fist' && this.particleRenderer.isFistBallEffect()) {
@@ -193,6 +218,9 @@ export class App {
         this.gestureHud.innerText = "未检测到手势 (No hands)";
         this.gestureHud.style.color = '#aaa';
         this.particleRenderer.resetParticles();
+        
+        // Update gesture info for no hands
+        this.gestureInfo.updateGestureInfo('none', 'unknown', 0);
       }
     }
 
@@ -224,9 +252,9 @@ export class App {
         if (this.lastMeaningfulGesture === 'fist' && this.particleRenderer.isFistBallEffect()) {
           this.particleRenderer.explode();
           this.gestureHud.innerText += " (爆炸!)";
-          this.gestureHud.style.color = '#ff0000';
+          this.gestureHud.style.color = '#FF1493'; // Hot Pink/Neon Pink
         } else {
-          this.particleRenderer.updateText("你好阿里云", 0x00ff00);
+          this.particleRenderer.updateText("Hello World", 0x00ff00);
         }
         break;
       case 'ok_sign':
@@ -242,13 +270,13 @@ export class App {
         this.particleRenderer.updateText("比心 ❤️", 0xff69b4); // HotPink
         break;
       case 'thumbs_up':
-        this.particleRenderer.updateText("点赞 👍", 0x4488ff);
+        this.particleRenderer.updateText("Great", 0x4488ff);
         break;
       case 'fist':
         // Create fist ball effect at palm position
         this.particleRenderer.createFistBall(palmPosition);
         this.gestureHud.innerText += " (聚集中...)";
-        this.gestureHud.style.color = '#ffaa00';
+        this.gestureHud.style.color = '#FFA500'; // Neon Orange
         break;
     }
   }

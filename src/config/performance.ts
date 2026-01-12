@@ -53,7 +53,7 @@ const PERFORMANCE_PRESETS: Record<string, PerformanceConfig> = {
     particleCount: 5000,
     particleUpdateThreshold: 0.002,
     textSamplingStep: 8,
-    enableBloom: false,
+    enableBloom: true, // Enable bloom even on low-end for fluorescent effect
     bloomKernelSize: 'SMALL',
     enableChromaticAberration: false,
     enableColorGrading: false,
@@ -68,7 +68,7 @@ const PERFORMANCE_PRESETS: Record<string, PerformanceConfig> = {
     enableBloom: true,
     bloomKernelSize: 'MEDIUM',
     enableChromaticAberration: true,
-    enableColorGrading: false,
+    enableColorGrading: true, // Enable for better fluorescent colors
     enablePerformanceMonitor: false,
     targetFps: 60,
   },
