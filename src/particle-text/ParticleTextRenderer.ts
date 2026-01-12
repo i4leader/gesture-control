@@ -22,9 +22,9 @@ export class ParticleTextRenderer {
     private fistBallOffsets: Float32Array; // Store relative positions from center
     
     // Different transition speeds for different effects
-    private textTransitionSpeed: number = 0.08; // Increased from 0.04 for faster text formation
-    private fistBallTransitionSpeed: number = 0.15; // Slightly increased for even faster response
-    private explosionTransitionSpeed: number = 0.12; // Increased for more dramatic explosion
+    private textTransitionSpeed: number = 0.15; // Increased from 0.08 for much faster text formation
+    private fistBallTransitionSpeed: number = 0.20; // Increased from 0.15 for faster response
+    private explosionTransitionSpeed: number = 0.18; // Increased from 0.12 for faster explosion
     
     // Track which particles are active for text display
     private activeParticleCount: number = 0;
