@@ -10,7 +10,7 @@
 开发者: [Jack Tu](https://github.com/i4leader) + Kiro
 
 ## 演示
-<video src="public/demo/demo1.mp4">
+<video src="/public/demo/demo1.mp4">
 </video>
 
 ## ✨ 功能特色
@@ -176,5 +176,4 @@ src/
 
 ⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
 本项目由阿里云ESA提供加速、计算和保护
-“本项目由阿里云ESA提供加速、计算和保护” 
 <img src="/public/pics/aliyun.png">
