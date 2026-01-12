@@ -12,7 +12,7 @@
 ## 🎬 演示
 
 ### 在线演示
-🚀 **[立即体验 Live Demo](https://github.com/quiet-node/mediapipe-for-fun)** - 访问 http://localhost:2501
+🚀 **![演示动画](public/pics/demo.gif)** - 访问 http://localhost:2501
 
 ### 演示视频
 由于GitHub的视频播放限制，推荐以下方式观看演示：
@@ -72,11 +72,15 @@
 
 ## 🚀 技术栈
 
-- **🎯 Three.js**: 3D渲染与粒子系统
-- **🤖 MediaPipe**: AI手势识别
-- **⚡ TypeScript**: 类型安全的逻辑开发
-- **🔥 Vite**: 现代化构建工具
-- **🎨 后处理**: Bloom、色彩分级、色差效果
+- **🎯 Three.js v0.181.2**: 3D渲染与粒子系统
+- **🤖 MediaPipe v0.10.22**: AI手势识别引擎
+- **⚡ TypeScript v5.9.3**: 类型安全的逻辑开发
+- **🔥 Vite v6.4.1**: 现代化构建工具与开发服务器
+- **🎨 PostProcessing v6.38.0**: Bloom、色彩分级、色差效果
+- **📦 其他依赖**:
+  - `@lume/three-meshline`: 高性能线条渲染
+  - `@fontsource/nunito`: 现代字体支持
+  - `@vercel/analytics`: 性能分析
 
 ## 📦 快速开始
 
@@ -256,6 +260,83 @@ npm run typecheck
 npm run validate-build
 ```
 
+## 🚀 部署指南
+
+### 本地开发
+```bash
+git clone https://github.com/quiet-node/mediapipe-for-fun.git
+cd gesture-control
+npm install
+npm run dev
+# 访问 http://localhost:2501
+```
+
+### 生产部署
+```bash
+# 构建
+npm run build
+
+# 部署到静态服务器
+# dist/ 目录包含所有静态文件
+```
+
+### 部署注意事项
+- **HTTPS要求**: 摄像头访问需要HTTPS或localhost
+- **CORS配置**: 确保MediaPipe模型文件可正常加载
+- **性能优化**: 启用gzip压缩和CDN加速
+- **浏览器兼容**: 推荐Chrome/Edge/Firefox最新版本
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+### 开发流程
+1. Fork 项目
+2. 创建功能分支: `git checkout -b feature/amazing-feature`
+3. 提交更改: `git commit -m 'Add amazing feature'`
+4. 推送分支: `git push origin feature/amazing-feature`
+5. 提交 Pull Request
+
+### 代码规范
+- 使用 TypeScript 进行类型安全开发
+- 遵循 ESLint 配置的代码风格
+- 添加适当的注释和文档
+- 确保通过所有测试: `npm run validate-build`
+
+## ❓ 常见问题
+
+### Q: 为什么演示视频在GitHub上无法播放？
+A: 这是GitHub的已知限制。建议：
+- 下载到本地观看: `./public/demo/demo1.mp4`
+- 直接运行项目体验: `npm run dev`
+- 查看项目截图了解效果
+
+### Q: 手势识别不够准确怎么办？
+A: 优化建议：
+- 确保充足光线，避免背光
+- 保持50-100cm距离
+- 单手操作，避免双手干扰
+- 手势动作要清晰完整
+
+### Q: 性能不佳如何优化？
+A: 项目已内置自适应优化：
+- 自动检测设备性能等级
+- 动态调整粒子数量和效果
+- 可按'P'键查看性能统计
+- 关闭其他GPU占用应用
+
+### Q: 支持哪些浏览器？
+A: 推荐现代浏览器：
+- Chrome 90+ (推荐)
+- Edge 90+
+- Firefox 88+
+- Safari 14+ (部分功能)
+
+### Q: 可以自定义手势吗？
+A: 当前支持7种预设手势，自定义手势需要：
+- 修改 `GestureManager.ts` 中的检测逻辑
+- 添加对应的粒子效果
+- 更新UI显示信息
 
 ## 📄 许可证
 
