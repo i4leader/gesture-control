@@ -33,7 +33,6 @@
 - **荧光粒子系统**: 12,000个发光粒子，营造科幻氛围
 - **智能跟踪**: 握拳粒子球实时跟随手掌移动
 - **朦胧背景**: 摄像头画面添加梦幻滤镜效果 (`blur(2px) opacity(0.6)`)
-- **1.5倍放大**: 文字和图形更加醒目清晰
 - **标准荧光色**: 采用工业标准的5种荧光色彩
   - 🟡 荧光黄: `#CCFF00` RGB(204,255,0)
   - 🟢 荧光绿: `#00FF00` RGB(0,255,0) 
@@ -45,7 +44,6 @@
 - **左上角系统信息** (绿色主题): 分辨率、帧率、浏览器、平台、WebGL版本
 - **左下角手势信息** (粉色主题): 识别的手势、左右手、置信度、状态
 - **中央手势提示**: 当前识别的手势名称和状态
-- **性能监控**: 按 'P' 键切换性能统计显示
 
 ## 🚀 技术栈
 
@@ -54,17 +52,14 @@
 - **⚡ TypeScript v5.9.3**: 类型安全的逻辑开发
 - **🔥 Vite v6.4.1**: 现代化构建工具与开发服务器
 - **🎨 PostProcessing v6.38.0**: Bloom、色彩分级、色差效果
-- **📦 其他依赖**:
-  - `@lume/three-meshline`: 高性能线条渲染
-  - `@fontsource/nunito`: 现代字体支持
-  - `@vercel/analytics`: 性能分析
+
 
 ## 📦 快速开始
 
 ### 环境要求
 - Node.js 16+ 
 - 现代浏览器 (Chrome/Edge/Firefox)
-- 摄像头设备
+- 电脑摄像头设备
 
 ### 安装运行
 ```bash
@@ -211,7 +206,6 @@ const ANIMATION_SPEEDS = {
 1. 关闭其他占用GPU的应用
 2. 降低浏览器窗口大小
 3. 项目会自动根据设备性能调整效果质量
-4. 按 'P' 键查看性能统计信息
 
 ### 手势识别不准确
 **问题**: 手势识别失败或延迟
@@ -267,18 +261,6 @@ npm run build
 
 欢迎提交 Issue 和 Pull Request！
 
-### 开发流程
-1. Fork 项目
-2. 创建功能分支: `git checkout -b feature/amazing-feature`
-3. 提交更改: `git commit -m 'Add amazing feature'`
-4. 推送分支: `git push origin feature/amazing-feature`
-5. 提交 Pull Request
-
-### 代码规范
-- 使用 TypeScript 进行类型安全开发
-- 遵循 ESLint 配置的代码风格
-- 添加适当的注释和文档
-- 确保通过所有测试: `npm run validate-build`
 
 ## ❓ 常见问题
 
