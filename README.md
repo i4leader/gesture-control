@@ -7,7 +7,11 @@
 ![Three.js](https://img.shields.io/badge/Three.js-0.181.2-green.svg)
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10.22-orange.svg)
 
-开发者: [Jack Tu](https://github.com/i4leader)
+开发者: [Jack Tu](https://github.com/i4leader) + Kiro
+
+## 演示
+<video src="./public/demo/demo1.mp4" controls width="640" height="360">
+</video>
 
 ## ✨ 功能特色
 
@@ -34,7 +38,6 @@
 ### 📊 实时信息显示
 - **左上角系统信息**: 分辨率、帧率、浏览器、平台、WebGL版本
 - **左下角手势信息**: 识别的手势、左右手、置信度、状态
-- **性能监控**: 按 'P' 键切换详细性能数据
 
 ## 🚀 技术栈
 
@@ -179,3 +182,5 @@ src/
 ---
 
 ⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
+本项目由阿里云ESA提供加速、计算和保护
+(https://img.alicdn.com/imgextra/i3/O1CN01H1UU3i1Cti9lYtFrs_!!6000000000139-2-tps-7534-844.png)
