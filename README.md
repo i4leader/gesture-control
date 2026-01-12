@@ -10,7 +10,7 @@
 开发者: [Jack Tu](https://github.com/i4leader) + Kiro
 
 ## 演示
-<video src="./public/demo/demo1.mp4" controls width="640" height="360">
+<video src="public/demo/demo1.mp4">
 </video>
 
 ## ✨ 功能特色
@@ -29,7 +29,7 @@
 | ✊ **握拳爆炸** | 握拳聚集→张开爆炸 | 荧光橙→荧光粉 |
 
 ### 🎨 视觉效果
-- **荧光粒子系统**: 10,000个发光粒子，营造科幻氛围
+- **荧光粒子系统**: 12,000个发光粒子，营造科幻氛围
 - **智能跟踪**: 握拳粒子球实时跟随手掌移动
 - **朦胧背景**: 摄像头画面添加梦幻滤镜效果
 - **1.5倍放大**: 文字和图形更加醒目清晰
@@ -90,7 +90,6 @@ npm run preview
 4. **握拳特效** - 握拳后移动手掌，张开时触发爆炸
 
 ### 快捷键
-- **P键**: 切换性能监控显示
 - **ESC键**: 重置粒子状态
 
 ### 最佳体验建议
@@ -162,12 +161,6 @@ src/
 
 欢迎提交 Issue 和 Pull Request！
 
-### 开发流程
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
 
 ## 📄 许可证
 
@@ -183,4 +176,4 @@ src/
 
 ⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
 本项目由阿里云ESA提供加速、计算和保护
-(https://img.alicdn.com/imgextra/i3/O1CN01H1UU3i1Cti9lYtFrs_!!6000000000139-2-tps-7534-844.png)
+<img src="https://github.githubassets.com/public/pics/aliyun.png" alt="aliyun discliamer">
