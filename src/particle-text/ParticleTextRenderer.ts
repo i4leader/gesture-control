@@ -4,7 +4,7 @@ export class ParticleTextRenderer {
     private scene: THREE.Scene;
     private particles: THREE.Points;
     private geometry: THREE.BufferGeometry;
-    private particleCount: number = 10000;
+    private particleCount: number = 12000;
     private currentPositions: Float32Array;
     private targetPositions: Float32Array;
 
@@ -22,14 +22,14 @@ export class ParticleTextRenderer {
     private fistBallOffsets: Float32Array; // Store relative positions from center
     
     // Different transition speeds for different effects
-    private textTransitionSpeed: number = 0.15; // Increased from 0.08 for much faster text formation
-    private fistBallTransitionSpeed: number = 0.20; // Increased from 0.15 for faster response
-    private explosionTransitionSpeed: number = 0.18; // Increased from 0.12 for faster explosion
+    private textTransitionSpeed: number = 0.5; // Increased from 0.08 for much faster text formation
+    private fistBallTransitionSpeed: number = 0.2; // Increased from 0.15 for faster response
+    private explosionTransitionSpeed: number = 0.2; // Increased from 0.12 for faster explosion
     
     // Track which particles are active for text display
     private activeParticleCount: number = 0;
 
-    constructor(scene: THREE.Scene, particleCount: number = 10000) {
+    constructor(scene: THREE.Scene, particleCount: number = 12000) {
         this.scene = scene;
         this.particleCount = particleCount;
         this.currentPositions = new Float32Array(this.particleCount * 3);
